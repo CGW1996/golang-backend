@@ -1,7 +1,7 @@
 package route
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/CGW1996/golang-backend/bootstrap"
@@ -10,5 +10,7 @@ import (
 )
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, routerV1 *gin.RouterGroup) {
-	log.Println(routerV1)
+	fmt.Println(env)
+	publicRouterV1 := routerV1.Group("")
+	NewSignupRouter(timeout, db, publicRouterV1)
 }

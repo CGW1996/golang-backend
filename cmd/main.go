@@ -18,11 +18,15 @@ func main() {
 
 	timeout := time.Duration(env.ContextTimeout) * time.Second
 
-	gin := gin.Default()
+	router := gin.Default()
 
-	routerV1 := gin.Group("/v1")
+	router.GET("/user", func(c *gin.Context) {
+		c.String(200, "/user")
+	})
+
+	routerV1 := router.Group("/v1")
 
 	routeV1.Setup(env, timeout, db, routerV1)
 
-	gin.Run(env.ServerAddress)
+	router.Run(env.ServerAddress)
 }
