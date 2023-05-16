@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/CGW1996/golang-backend/domain"
+	"github.com/CGW1996/golang-backend/internal/tokenutil"
 )
 
 type loginUsecase struct {
@@ -23,4 +24,8 @@ func (lu *loginUsecase) GetUserByEmail(c context.Context, email string) (domain.
 	ctx, cancel := context.WithTimeout(c, lu.contextTimeout)
 	defer cancel()
 	return lu.userRepository.GetByEmail(ctx, email)
+}
+
+func (lu *loginUsecase) CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
+	return tokenutil.CreateAccessToken(user, secret, expiry)
 }

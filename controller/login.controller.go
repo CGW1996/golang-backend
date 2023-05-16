@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/CGW1996/golang-backend/bootstrap"
 	"github.com/CGW1996/golang-backend/domain"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -10,6 +11,7 @@ import (
 
 type LoginController struct {
 	LoginUsecase domain.LoginUsecase
+	Env          *bootstrap.Env
 }
 
 func (lc *LoginController) Login(c *gin.Context) {
@@ -32,5 +34,13 @@ func (lc *LoginController) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, "Login success")
+	accessToken, err := lc.LoginUsecase.CreateAccessToken(&user, lc.Env.AccessTokenSecret, lc.Env.AccessTokenExpiryHour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "here:" + err.Error()})
+		return
+	}
+	loginResponse := domain.LoginResponse{
+		AccessToken: accessToken,
+	}
+	c.JSON(http.StatusOK, loginResponse)
 }
