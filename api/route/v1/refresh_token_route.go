@@ -12,11 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewSignupRouter(env *bootstrap.Env, timeout time.Duration, db mongo.Database, group *gin.RouterGroup) {
+func NewRefreshTokenRouter(env *bootstrap.Env, timeout time.Duration, db mongo.Database, group *gin.RouterGroup) {
 	ur := repository.NewUserRepository(db, domain.CollectionUser)
-	sc := controller.SignupController{
-		SignupUsecase: usecase.NewSignupUsecase(ur, timeout),
-		Env:           env,
+	rtc := &controller.RefreshTokenController{
+		RefreshTokenUsecase: usecase.NewRefreshTokenUsecase(ur, timeout),
+		Env:                 env,
 	}
-	group.POST("/signup", sc.Signup)
+	group.POST("/refresh", rtc.RefreshToken)
 }

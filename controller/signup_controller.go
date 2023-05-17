@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/CGW1996/golang-backend/bootstrap"
 	"github.com/CGW1996/golang-backend/domain"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -11,6 +12,7 @@ import (
 
 type SignupController struct {
 	SignupUsecase domain.SignupUsecase
+	Env           *bootstrap.Env
 }
 
 func (sc *SignupController) Signup(c *gin.Context) {
@@ -51,5 +53,22 @@ func (sc *SignupController) Signup(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, "success")
+	accessToken, err := sc.SignupUsecase.CreateAccessToken(&user, sc.Env.AccessTokenSecret, sc.Env.AccessTokenExpiryHour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	refreshToken, err := sc.SignupUsecase.CreateRefreshToken(&user, sc.Env.RefreshTokenSecret, sc.Env.RefreshTokenExpiryHour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	signupResponse := domain.SignupResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	c.JSON(http.StatusOK, signupResponse)
 }

@@ -39,8 +39,14 @@ func (lc *LoginController) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "here:" + err.Error()})
 		return
 	}
+
+	refreshToekn, err := lc.LoginUsecase.CreateRefreshToken(&user, lc.Env.RefreshTokenSecret, lc.Env.RefreshTokenExpiryHour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+	}
 	loginResponse := domain.LoginResponse{
-		AccessToken: accessToken,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToekn,
 	}
 	c.JSON(http.StatusOK, loginResponse)
 }

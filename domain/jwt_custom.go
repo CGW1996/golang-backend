@@ -7,3 +7,8 @@ type JwtCustomClaims struct {
 	ID   string `json:"id"`
 	jwt.StandardClaims
 }
+
+type JwtCustomRefreshClaims struct {
+	ID string `json:"id"`
+	jwt.StandardClaims
+}
