@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	routeV1 "github.com/CGW1996/golang-backend/api/route/v1"
+	route "github.com/CGW1996/golang-backend/api/route"
 	"github.com/CGW1996/golang-backend/bootstrap"
 	"github.com/gin-gonic/gin"
 )
@@ -20,13 +20,7 @@ func main() {
 
 	router := gin.Default()
 
-	router.GET("/user", func(c *gin.Context) {
-		c.String(200, "/user")
-	})
-
-	routerV1 := router.Group("/v1")
-
-	routeV1.Setup(env, timeout, db, routerV1)
+	route.Setup(env, timeout, db, router)
 
 	router.Run(env.ServerAddress)
 }
