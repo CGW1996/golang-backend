@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, routerV1 *gin.RouterGroup) {
+func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, routerV1 *gin.Engine) {
 	publicRouterV1 := routerV1.Group("")
 	NewSignupRouter(env, timeout, db, publicRouterV1)
 	NewLoginRouter(env, timeout, db, publicRouterV1)
@@ -19,4 +19,5 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, routerV
 	// middleware to verify accessToken
 	protectedRouterV1.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
 	// all private api
+	NewProfileRouter(env, timeout, db, protectedRouterV1)
 }
