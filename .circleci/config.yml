@@ -1,52 +1,21 @@
 version: 2.1
-initWorkingDir: &initWorkingDir
-  type: shell
-  name: Initialize Working Directory
-  pwd: /
-  command: |
-    mkdir -p ~/go/src/${CIRCLE_PROJECT_USERNAME}/golang-backend
-    sudo chown -R circleci ~/go
-    mkdir -p ~/go/out/tests
-    mkdir -p ~/go/out/logs
-    mkdir -p /home/circleci/logs
-    GOROOT=$(go env GOROOT)
-    sudo rm -r $(go env GOROOT)
-    sudo mkdir $GOROOT
-    LATEST=$(curl -s https://go.dev/VERSION?m=text)
-    curl https://dl.google.com/go/${LATEST}.linux-amd64.tar.gz | sudo tar xz -C $GOROOT --strip-components=1
-integrationDefaults: &integrationDefaults
-  machine:
-    image: ubuntu-2004:2022.04.2
-  working_directory: ~/go/src/${CIRCLE_PROJECT_USERNAME}/golang-backend
-
-buildGoImage: &buildGoImage
-  - run:
-      name: Build latest golang-backend Docker image
-      command: |
-        cd ~/go/src/${CIRCLE_PROJECT_USERNAME}/golang-backend
-        make golang-backend SYSTEM="GOOS=linux" && \
-        docker-compose up -d --build
 jobs:
-  test:
-    <<: *integrationDefaults
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: cimg/go:1.20.4
     steps:
-      - <<: *initWorkingDir
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
       - run:
-          name: Get CI repo
-          command: |
-            mkdir -p ~/go/src/${CIRCLE_PROJECT_USERNAME}/ci
-            git clone https://github.com/${CIRCLE_PROJECT_USERNAME}/ci ~/go/src/${CIRCLE_PROJECT_USERNAME}/ci
-      - <<: *buildGoImage
+          name: Install Dependencies
+          command: go get ./...
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
       - run:
           name: Run tests
-          command: |
-            cd ~/go/src/${CIRCLE_PROJECT_USERNAME}/ci/test
-            go mod tidy
-            go test -v ./...
-
-workflows:
-  version: 2
-  integration-tests:
-    jobs:
-      - test
+          command: go test ./...
