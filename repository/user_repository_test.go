@@ -54,3 +54,38 @@ func Test_userRepository_Create(t *testing.T) {
 		collectionHelper.AssertExpectations(t)
 	})
 }
+
+func Test_userRepository_Fetch(t *testing.T) {
+	var databaseHelper *mocks.Database
+	var collectionHelper *mocks.Collection
+
+	databaseHelper = &mocks.Database{}
+	collectionHelper = &mocks.Collection{}
+	cursorHelper := &mocks.Cursor{}
+
+	collectionName := domain.CollectionUser
+
+	mockUser := &domain.User{
+		ID:       primitive.NewObjectID(),
+		Name:     "Steven",
+		Email:    "Steven@gmail.com",
+		Password: "password",
+	}
+
+	mockListUser := make([]domain.User, 0)
+	mockListUser = append(mockListUser, *mockUser)
+
+	t.Run("success", func(t *testing.T) {
+		collectionHelper.On("Find", mock.Anything, mock.AnythingOfType("primitive.D"), mock.Anything).Return(cursorHelper, nil).Once()
+		databaseHelper.On("Collection", collectionName).Return(collectionHelper).Once()
+		cursorHelper.On("All", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*[]domain.User)
+			*arg = append(*arg, *mockUser)
+		})
+		ur := repository.NewUserRepository(databaseHelper, collectionName)
+		users, err := ur.Fetch(context.Background())
+		assert.NoError(t, err)
+		assert.NotNil(t, users)
+		assert.Len(t, users, len(mockListUser))
+	})
+}
